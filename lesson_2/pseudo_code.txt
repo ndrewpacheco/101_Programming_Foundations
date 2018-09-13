@@ -5,7 +5,7 @@ get an integer from user and set it to a variable
 get another integer from user and set it to another variable
 add the two variables together and set it to a variable named result
 print result
-
+--
 
 START
 GET first number
@@ -22,8 +22,9 @@ returns that variable
 START
 
 WHILE the array has a collection of strings, add each string into a  variable, with spaces inbetween
-
+--
 
 3. a method that takes an array of integers, and returns a new array with every other element
 
 Given an array, select each item whose indexes are an even number, and push them onto a new array.
+
