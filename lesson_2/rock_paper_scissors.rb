@@ -1,13 +1,20 @@
-VALID_CHOICES = ["Rock", "Paper", "Scissors"]
+VALID_CHOICES = {
+  rock: "r",
+  paper: "p",
+  scissors: "s"
+}
+
+display_choices = VALID_CHOICES.map {|k,v| "#{k.capitalize}; type (#{v})"}.join(", ")
+
 
 def prompt(message)
   Kernel.puts("=> #{message}")
 end
 
 def win?(first, second)
-  (first == "Rock" && second == "Scissors") ||
-    (first == "Paper" && second == "Rock") ||
-    (first == "Scissors" && second == "Paper")
+  (first == "r" && second == "s") ||
+    (first == "p" && second == "r") ||
+    (first == "s" && second == "p") 
 end
 
 def display_results(player, computer)
@@ -23,17 +30,20 @@ end
 loop do
   choice = ''
   loop do
-    prompt("Choose one: #{VALID_CHOICES.join(', ')}")
+    prompt("Choose one: #{display_choices}")
     choice = Kernel.gets().chomp()
-    if VALID_CHOICES.include?(choice)
+    if VALID_CHOICES.has_value?(choice)
       break
     else
       prompt("That is not a valid choice.")
     end
   end
 
-  computer_choice = VALID_CHOICES.sample
-  prompt("You choose #{choice}, Computer choose #{computer_choice}")
+  computer_choice = VALID_CHOICES.to_a.sample[1].to_s
+  choice_to_str = VALID_CHOICES.key(choice)
+  computer_choice_to_str = VALID_CHOICES.key(computer_choice)
+  
+  prompt("You chose #{choice_to_str}, Computer chose #{computer_choice_to_str}")
   display_results(choice, computer_choice)
 
   prompt("Do you want to play again? Say 'y' if so")
