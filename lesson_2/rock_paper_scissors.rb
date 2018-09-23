@@ -1,20 +1,28 @@
 VALID_CHOICES = {
   rock: "r",
   paper: "p",
-  scissors: "s"
+  scissors: "sc",
+  lizard: "l",
+  spock: "sp"
 }
 
 display_choices = VALID_CHOICES.map {|k,v| "#{k.capitalize}; type (#{v})"}.join(", ")
-
 
 def prompt(message)
   Kernel.puts("=> #{message}")
 end
 
 def win?(first, second)
-  (first == "r" && second == "s") ||
+  (first == "r" && second == "sc") ||
     (first == "p" && second == "r") ||
-    (first == "s" && second == "p") 
+    (first == "sc" && second == "p") ||
+    (first == "r" && second == "l") || 
+    (first == "l" && second == "sp") ||
+    (first == "sp" && second == "sc") ||
+    (first == "sc" && second == "l") ||
+    (first == "l" && second == "p") ||
+    (first == "p" && second == "sp") ||
+    (first == "sp" && second == "r")  
 end
 
 def display_results(player, computer)
@@ -42,7 +50,7 @@ loop do
   computer_choice = VALID_CHOICES.to_a.sample[1].to_s
   choice_to_str = VALID_CHOICES.key(choice)
   computer_choice_to_str = VALID_CHOICES.key(computer_choice)
-  
+
   prompt("You chose #{choice_to_str}, Computer chose #{computer_choice_to_str}")
   display_results(choice, computer_choice)
 
