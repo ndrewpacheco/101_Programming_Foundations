@@ -51,7 +51,6 @@ loop do
 
   loop do
     choice = ''
-
     loop do
       prompt("Choose one: #{display_choices}")
       choice = Kernel.gets().chomp()
@@ -61,6 +60,7 @@ loop do
         prompt("That is not a valid choice.")
       end
     end
+
     computer_choice = VALID_CHOICES.to_a.sample[1].to_s
     choice_to_str = VALID_CHOICES.key(choice)
     computer_choice_to_str = VALID_CHOICES.key(computer_choice)
@@ -68,7 +68,6 @@ loop do
     prompt("You chose #{choice_to_str},
       Computer chose #{computer_choice_to_str}")
     display_results(choice, computer_choice)
-    puts win?(choice, computer_choice)
 
     player_score += 1 if win?(choice, computer_choice)
     computer_score += 1 if win?(computer_choice, choice)
