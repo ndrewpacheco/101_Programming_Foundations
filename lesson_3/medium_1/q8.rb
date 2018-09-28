@@ -1,0 +1,1 @@
+# yes it did get ransacked, as the mess_with_demographics method reassigned each of the items in the hash
