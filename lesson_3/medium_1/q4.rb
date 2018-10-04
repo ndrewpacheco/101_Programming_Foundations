@@ -12,5 +12,5 @@ end
 
 
 
-p rolling_buffer1([1,2,3,4,5],3,6)
-p rolling_buffer2([1,2,3,4,5],3,6)
+p rolling_buffer1([1,2,3,4,5], 3, 6)
+p rolling_buffer2([1,2,3,4,5], 3, 6)
