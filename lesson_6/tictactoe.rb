@@ -1,8 +1,8 @@
 require 'pry'
 
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
-                [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
-                [[1, 5, 9], [3, 5, 7]]
+[[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
+[[1, 5, 9], [3, 5, 7]]
 INITIAL_MARKER = " "
 PLAYER_MARKER = "X"
 COMPUTER_MARKER = "O"
@@ -34,6 +34,8 @@ end
 def initialize_board
   new_board = {}
   (1..9).each { |num| new_board[num] = INITIAL_MARKER }
+  # new_board[1] = PLAYER_MARKER # test
+  # new_board[2] = PLAYER_MARKER  # test
   new_board
 end
 
@@ -67,8 +69,16 @@ def player_places_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
+
 def computer_places_piece!(brd)
-  square = empty_squares(brd).sample
+  threats = WINNING_LINES.select do |line|
+    brd.values_at(*line).count(PLAYER_MARKER) == 2 && brd.values_at(*line).any?(INITIAL_MARKER)
+  end
+  if threats.size >= 1
+    square = threats.first.select {|num| brd[num] == INITIAL_MARKER}[0]
+  else
+    square = empty_squares(brd).sample 
+  end  
   brd[square] = COMPUTER_MARKER
 end
 
@@ -92,27 +102,49 @@ def detect_winner(brd)
 end
 
 loop do
-  board = initialize_board
-
+  score = {
+    player: 0,
+    computer: 0
+  }
   loop do
+    board = initialize_board
+    
+    loop do
+      display_board(board)
+
+      player_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+
+      computer_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+    end
+
     display_board(board)
 
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
+    if someone_won?(board)
+      winner = detect_winner(board)
+      prompt "#{winner} won this set!"
 
-    computer_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-  end
+    else
+      prompt "It's a tie."
+    end
+    score[:player] += 1 if winner == "Player"
+    score[:computer] += 1 if winner == "Computer"
+    puts "The score is Player: #{score[:player]}, Computer: #{score[:computer]}"
 
-  display_board(board)
-
-  if someone_won?(board)
-    prompt "#{detect_winner(board)} won!"
-  else
-    prompt "It's a tie."
-  end
-  prompt "Play again? (y or n)"
-  answer = gets.chomp
-  break unless answer.downcase.start_with?('y')
+    if score[:player] == 2 # should be 5, but for ease of testing its 2
+      prompt "Player Wins!"
+      break
+    elsif score[:computer] == 2 # should be 5, but for ease of testing its 2
+      prompt "Computer Wins!"
+      break
+    else
+     prompt "Press any key to continue"
+     answer = gets.chomp
+   end
+ end
+ prompt "Play again? (y or n)"
+ answer = gets.chomp
+ break unless answer.downcase.start_with?('y')
 end
 prompt "Thanks for playing Tic Tac Toe"
