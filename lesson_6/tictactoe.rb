@@ -73,7 +73,14 @@ def find_at_risk_square(brd)
   threats = WINNING_LINES.select do |line|
     brd.values_at(*line).count(PLAYER_MARKER) == 2 && brd.values_at(*line).any?(INITIAL_MARKER)
   end
-  if threats.size >= 1
+
+  winning_numbers = WINNING_LINES.select do |line|
+    brd.values_at(*line).count(COMPUTER_MARKER) == 2 && brd.values_at(*line).any?(INITIAL_MARKER)
+  end
+
+  if winning_numbers.size >= 1
+    winning_numbers.first.select {|num| brd[num] == INITIAL_MARKER}[0]
+  elsif threats.size >= 1
     threats.first.select {|num| brd[num] == INITIAL_MARKER}[0]
   end
 end
@@ -81,11 +88,13 @@ end
 def computer_places_piece!(brd)
   find_at_risk_square(brd)
  
-     if find_at_risk_square(brd).nil?
-      square = empty_squares(brd).sample
-    else
+    if find_at_risk_square(brd)
       square = find_at_risk_square(brd)
-   end  
+    elsif brd[5] == INITIAL_MARKER
+      square = 5
+      else
+      square = empty_squares(brd).sample
+    end  
   brd[square] = COMPUTER_MARKER
 end
 
@@ -108,22 +117,46 @@ def detect_winner(brd)
   nil
 end
 
+def player_plays_first(board)
+  loop do
+    display_board(board)
+    player_places_piece!(board)
+    break if someone_won?(board) || board_full?(board)
+    computer_places_piece!(board)
+    break if someone_won?(board) || board_full?(board)
+  end
+
+end
+def computer_plays_first(board)
+  loop do
+    computer_places_piece!(board)
+    break if someone_won?(board) || board_full?(board)
+    display_board(board)
+    player_places_piece!(board)
+    break if someone_won?(board) || board_full?(board)
+  end
+end
+
+
 loop do
   score = {
     player: 0,
     computer: 0
   }
+  choice = ""
+ loop do 
+      prompt "Who plays first? \n Type 'player' for Player \n Type 'computer' for Computer \n Type 'choose' for random"
+      choice = gets.chomp 
+      choices = ['player', 'computer', 'choose']
+      break if choices.include?(choice)
+      prompt "Not a valid answer, try again"
+    end
   loop do
-    board = initialize_board
-    
-    loop do
-      display_board(board)
-
-      player_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
-
-      computer_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
+    board = initialize_board  
+    case choice
+    when 'player' then player_plays_first(board)
+    when 'computer' then computer_plays_first(board)
+    when 'choose' then [player_plays_first(board), computer_plays_first(board)].sample
     end
 
     display_board(board)
