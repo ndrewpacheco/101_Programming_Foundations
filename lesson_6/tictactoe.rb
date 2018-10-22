@@ -1,8 +1,8 @@
 require 'pry'
 
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
-[[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
-[[1, 5, 9], [3, 5, 7]]
+                [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
+                [[1, 5, 9], [3, 5, 7]]
 INITIAL_MARKER = " "
 PLAYER_MARKER = "X"
 COMPUTER_MARKER = "O"
@@ -46,13 +46,13 @@ end
 def joinor(array, seperator = ', ', last_word = 'or')
   string = ''
   array.each do |item|
-    if item == array.first && array.size <= 2
-      string += "#{item} "
-    elsif item == array.last
-      string += "#{last_word} #{item}"
-    else
-      string += "#{item}#{seperator}"
-    end
+    string += if item == array.first && array.size <= 2
+                "#{item} "
+              elsif item == array.last
+                "#{last_word} #{item}"
+              else
+                "#{item}#{seperator}"
+              end
   end
   puts string
 end
@@ -69,32 +69,46 @@ def player_places_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
-def find_at_risk_square(brd)
+def threat(brd)
   threats = WINNING_LINES.select do |line|
-    brd.values_at(*line).count(PLAYER_MARKER) == 2 && brd.values_at(*line).any?(INITIAL_MARKER)
+    brd.values_at(*line).count(PLAYER_MARKER) == 2 &&
+      brd.values_at(*line).any?(INITIAL_MARKER)
   end
+  if threats.size >= 1
+    threats.first.select { |num| brd[num] == INITIAL_MARKER }[0]
+  else
+    0
+  end
+end
 
+def winning_number(brd)
   winning_numbers = WINNING_LINES.select do |line|
-    brd.values_at(*line).count(COMPUTER_MARKER) == 2 && brd.values_at(*line).any?(INITIAL_MARKER)
+    brd.values_at(*line).count(COMPUTER_MARKER) == 2 &&
+      brd.values_at(*line).any?(INITIAL_MARKER)
   end
-
   if winning_numbers.size >= 1
-    winning_numbers.first.select {|num| brd[num] == INITIAL_MARKER}[0]
-  elsif threats.size >= 1
-    threats.first.select {|num| brd[num] == INITIAL_MARKER}[0]
+    winning_numbers.first.select { |num| brd[num] == INITIAL_MARKER }[0]
+  else
+    0
+  end
+end
+
+def find_at_risk_square(brd)
+  if winning_number(brd) >= 1
+    winning_number(brd)
+  elsif threat(brd) >= 1
+    threat(brd)
   end
 end
 
 def computer_places_piece!(brd)
-  find_at_risk_square(brd)
- 
-    if find_at_risk_square(brd)
-      square = find_at_risk_square(brd)
-    elsif brd[5] == INITIAL_MARKER
-      square = 5
-      else
-      square = empty_squares(brd).sample
-    end  
+  square = if find_at_risk_square(brd)
+             find_at_risk_square(brd)
+           elsif brd[5] == INITIAL_MARKER
+             5
+           else
+             empty_squares(brd).sample
+           end
   brd[square] = COMPUTER_MARKER
 end
 
@@ -117,26 +131,15 @@ def detect_winner(brd)
   nil
 end
 
-def player_plays_first(board)
-  loop do
-    display_board(board)
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-    computer_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-  end
-
-end
-def computer_plays_first(board)
-  loop do
-    computer_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-    display_board(board)
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-  end
+def place_piece!(board, current_player)
+  player_places_piece!(board) if current_player == "player"
+  computer_places_piece!(board) if current_player == "computer"
 end
 
+def alternate_player(current_player)
+  return 'computer' if current_player == 'player'
+  return 'player' if current_player == 'computer'
+end
 
 loop do
   score = {
@@ -144,21 +147,31 @@ loop do
     computer: 0
   }
   choice = ""
- loop do 
-      prompt "Who plays first? \n Type 'player' for Player \n Type 'computer' for Computer \n Type 'choose' for random"
-      choice = gets.chomp 
-      choices = ['player', 'computer', 'choose']
-      break if choices.include?(choice)
-      prompt "Not a valid answer, try again"
-    end
   loop do
-    board = initialize_board  
+    prompt "Who plays first? \n "      \
+    "Type 'player' for Player \n "     \
+    "Type 'computer' for Computer \n " \
+    "Type 'choose' for random"
+
+    choice = gets.chomp
+    choices = ['player', 'computer', 'choose']
+    break if choices.include?(choice)
+    prompt "Not a valid answer, try again"
+  end
+  loop do
+    board = initialize_board
     case choice
-    when 'player' then player_plays_first(board)
-    when 'computer' then computer_plays_first(board)
-    when 'choose' then [player_plays_first(board), computer_plays_first(board)].sample
+    when 'player' then current_player = 'player'
+    when 'computer' then current_player = 'computer'
+    when 'choose' then current_player = ['player', 'computer'].sample
     end
 
+    loop do
+      display_board(board)
+      place_piece!(board, current_player)
+      current_player = alternate_player(current_player)
+      break if someone_won?(board) || board_full?(board)
+    end
     display_board(board)
 
     if someone_won?(board)
@@ -179,12 +192,12 @@ loop do
       prompt "Computer Wins!"
       break
     else
-     prompt "Press any key to continue"
-     answer = gets.chomp
-   end
- end
- prompt "Play again? (y or n)"
- answer = gets.chomp
- break unless answer.downcase.start_with?('y')
+      prompt "Press any key to continue"
+      gets.chomp
+    end
+  end
+  prompt "Play again? (y or n)"
+  answer = gets.chomp
+  break unless answer.downcase.start_with?('y')
 end
 prompt "Thanks for playing Tic Tac Toe"
