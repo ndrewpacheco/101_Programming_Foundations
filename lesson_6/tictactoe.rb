@@ -185,10 +185,10 @@ loop do
     score[:computer] += 1 if winner == "Computer"
     puts "The score is Player: #{score[:player]}, Computer: #{score[:computer]}"
 
-    if score[:player] == 2 # should be 5, but for ease of testing its 2
+    if score[:player] == 5
       prompt "Player Wins!"
       break
-    elsif score[:computer] == 2 # should be 5, but for ease of testing its 2
+    elsif score[:computer] == 5
       prompt "Computer Wins!"
       break
     else
