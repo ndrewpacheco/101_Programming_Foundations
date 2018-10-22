@@ -69,16 +69,23 @@ def player_places_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
-
-def computer_places_piece!(brd)
+def find_at_risk_square(brd)
   threats = WINNING_LINES.select do |line|
     brd.values_at(*line).count(PLAYER_MARKER) == 2 && brd.values_at(*line).any?(INITIAL_MARKER)
   end
   if threats.size >= 1
-    square = threats.first.select {|num| brd[num] == INITIAL_MARKER}[0]
-  else
-    square = empty_squares(brd).sample 
-  end  
+    threats.first.select {|num| brd[num] == INITIAL_MARKER}[0]
+  end
+end
+
+def computer_places_piece!(brd)
+  find_at_risk_square(brd)
+ 
+     if find_at_risk_square(brd).nil?
+      square = empty_squares(brd).sample
+    else
+      square = find_at_risk_square(brd)
+   end  
   brd[square] = COMPUTER_MARKER
 end
 
