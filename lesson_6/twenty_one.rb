@@ -1,3 +1,4 @@
+require 'pry'
 CARD_VALUE = {
   "2" => 2,
   "3" => 3,
@@ -41,13 +42,32 @@ def prompt(msg)
   puts "=> #{msg}"
 end
 
+def display_players_cards(players_cards)
+  string = ""
+  players_cards.each_with_index do |card, i|
+    if i == players_cards.size - 1
+      string << "and #{card}."
+    elsif players_cards.size == 2
+      string << "#{card} "
+    else
+      string << "#{card}, "
+    end
+  end
+  "You have: #{string}"
+end
 deal_card(players_cards, deck)
 deal_card(dealers_cards, deck)
 deal_card(players_cards, deck)
 deal_card(dealers_cards, deck)
 
 prompt "Dealer has: #{dealers_cards[0]} and unknown card"
-prompt "You have #{players_cards[0]} and #{players_cards[1]} "
+prompt display_players_cards(players_cards)
 prompt "Your total: #{score(players_cards)}"
-prompt "Hit or Stay? type h or s"
-gets.chomp
+prompt "Hit or Stay? type h for Hit or s for Stay"
+answer = gets.chomp
+
+
+deal_card(players_cards, deck) if answer == "h"
+prompt display_players_cards(players_cards)
+
+
