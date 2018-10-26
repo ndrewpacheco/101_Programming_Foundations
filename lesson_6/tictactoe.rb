@@ -1,4 +1,3 @@
-require 'pry'
 
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
@@ -6,15 +5,17 @@ WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
 INITIAL_MARKER = " "
 PLAYER_MARKER = "X"
 COMPUTER_MARKER = "O"
+WINNING_SCORE = 1
 
 def prompt(msg)
   puts "=> #{msg}"
 end
 
-# rubocop:disable Metrics/AbcSize
-def display_board(brd)
+def display_board(brd, score)
   system 'clear'
   puts "You're a #{PLAYER_MARKER}, Computer is #{COMPUTER_MARKER}"
+  puts "The first player to #{WINNING_SCORE} points is the winner!"
+  puts "Player: #{score[:player]} Computer: #{score[:computer]}"
   puts ""
   puts "     |     |"
   puts "  #{brd[1]}  |  #{brd[2]}  |  #{brd[3]}"
@@ -29,13 +30,10 @@ def display_board(brd)
   puts "     |     |"
   puts ""
 end
-# rubocop:enable Metrics/AbcSize
 
 def initialize_board
   new_board = {}
   (1..9).each { |num| new_board[num] = INITIAL_MARKER }
-  # new_board[1] = PLAYER_MARKER # test
-  # new_board[2] = PLAYER_MARKER  # test
   new_board
 end
 
@@ -148,12 +146,14 @@ loop do
   }
   choice = ""
   loop do
-    prompt "Who plays first? \n "      \
-    "Type 'player' for Player \n "     \
-    "Type 'computer' for Computer \n " \
-    "Type 'choose' for random"
+    prompt <<~MSG
+    Who plays first?
+      Type 'player' for Player
+      Type 'computer' for Computer
+      Type 'choose' for random"
+    MSG
 
-    choice = gets.chomp
+    choice = gets.chomp.downcase
     choices = ['player', 'computer', 'choose']
     break if choices.include?(choice)
     prompt "Not a valid answer, try again"
@@ -167,12 +167,12 @@ loop do
     end
 
     loop do
-      display_board(board)
+      display_board(board, score)
       place_piece!(board, current_player)
       current_player = alternate_player(current_player)
       break if someone_won?(board) || board_full?(board)
     end
-    display_board(board)
+    display_board(board, score)
 
     if someone_won?(board)
       winner = detect_winner(board)
@@ -183,12 +183,11 @@ loop do
     end
     score[:player] += 1 if winner == "Player"
     score[:computer] += 1 if winner == "Computer"
-    puts "The score is Player: #{score[:player]}, Computer: #{score[:computer]}"
 
-    if score[:player] == 5
+    if score[:player] == WINNING_SCORE
       prompt "Player Wins!"
       break
-    elsif score[:computer] == 5
+    elsif score[:computer] == WINNING_SCORE
       prompt "Computer Wins!"
       break
     else
@@ -196,8 +195,14 @@ loop do
       gets.chomp
     end
   end
-  prompt "Play again? (y or n)"
-  answer = gets.chomp
-  break unless answer.downcase.start_with?('y')
+  answer = ''
+  loop do
+    prompt "Play again? (y or n)"
+    answer = gets.chomp.downcase
+    valid_answers = ["y", "n"]
+    break if valid_answers.include?(answer)
+    prompt "That was not a valid answer, try again."
+  end
+  break unless answer == 'y'
 end
 prompt "Thanks for playing Tic Tac Toe"
