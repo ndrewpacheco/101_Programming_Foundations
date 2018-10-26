@@ -3,7 +3,7 @@ CARD_VALUE = {
   "2" => 2,
   "3" => 3,
   "4" => 4,
-  "5"=> 5,
+  "5" => 5,
   "6" => 6,
   "7" => 7,
   "8" => 8,
@@ -15,16 +15,6 @@ CARD_VALUE = {
   "Ace" => [1, 11]
 }
 
-deck = { 
-  hearts: CARD_VALUE.keys,
-  diamonds: CARD_VALUE.keys,
-  clubs: CARD_VALUE.keys,
-  spades: CARD_VALUE.keys
-}
-
-players_cards = []
-dealers_cards = []
-
 def deal_card(card, deck)
   suit = deck.keys.sample
   value = deck[suit].sample
@@ -34,7 +24,17 @@ end
 
 def score(cards)
   score = 0
-  cards.each { |card| score += CARD_VALUE[card] }
+  no_aces = cards.reject { |card| card == "Ace" }
+  no_aces.each { |card| score += CARD_VALUE[card] }
+  cards.each do |card|
+    if card == "Ace"
+      score += if score <= 10
+                 CARD_VALUE[card][1]
+               else
+                 CARD_VALUE[card][0]
+               end
+    end
+  end
   score
 end
 
@@ -42,32 +42,91 @@ def prompt(msg)
   puts "=> #{msg}"
 end
 
-def display_players_cards(players_cards)
+def display_cards(cards, name = "Dealer")
   string = ""
-  players_cards.each_with_index do |card, i|
-    if i == players_cards.size - 1
-      string << "and #{card}."
-    elsif players_cards.size == 2
-      string << "#{card} "
+  cards.each_with_index do |card, i|
+    string << if i == cards.size - 1
+                "and #{card}."
+              elsif cards.size == 2
+                "#{card} "
+              else
+                "#{card}, "
+              end
+  end
+  "#{name} has: #{string}"
+end
+
+def busted?(score)
+  score > 21
+end
+
+prompt "Welcome to Twenty-One! Please type your name:"
+name = gets.chomp.downcase.capitalize
+
+loop do
+  deck = {
+    hearts: CARD_VALUE.keys,
+    diamonds: CARD_VALUE.keys,
+    clubs: CARD_VALUE.keys,
+    spades: CARD_VALUE.keys
+  }
+
+  players_cards = []
+  dealers_cards = []
+
+  deal_card(players_cards, deck)
+  deal_card(dealers_cards, deck)
+  deal_card(players_cards, deck)
+  deal_card(dealers_cards, deck)
+
+  loop do
+    prompt "Dealer has: #{dealers_cards[0]} and unknown card"
+    prompt display_cards(players_cards, name)
+    prompt "Your total: #{score(players_cards)}"
+    prompt "Hit or Stay? type h for Hit or s for Stay"
+    answer = gets.chomp.downcase
+
+    if answer == "h"
+      deal_card(players_cards, deck)
+      prompt "You hit"
+    elsif answer == "s"
+      prompt "You stayed"
     else
-      string << "#{card}, "
+      prompt "That was not a valid answer, try again."
+    end
+    break if answer == "s" || busted?(score(players_cards))
+  end
+
+  if busted?(score(players_cards))
+    prompt display_cards(players_cards, name)
+    prompt "Sorry you busted! Dealer wins"
+  else
+    while score(dealers_cards) < 17
+      deal_card(dealers_cards, deck)
+    end
+    prompt display_cards(dealers_cards)
+    prompt "Dealer's score: #{score(dealers_cards)}"
+    prompt "Your score: #{score(players_cards)}"
+
+    if score(dealers_cards) > 21
+      prompt display_cards(dealers_cards)
+      prompt "Dealer busts. You win!"
+    elsif score(players_cards) > score(dealers_cards)
+      prompt "You Win!"
+    elsif score(players_cards) < score(dealers_cards)
+      prompt "Dealer Wins!"
+    else
+      prompt "It's a tie!"
     end
   end
-  "You have: #{string}"
+  answer = ''
+  loop do
+    prompt "Play again? (y or n)"
+    answer = gets.chomp.downcase
+    valid_answers = ["y", "n"]
+    break if valid_answers.include?(answer)
+    prompt "That was not a valid answer, try again."
+  end
+  break unless answer == 'y'
 end
-deal_card(players_cards, deck)
-deal_card(dealers_cards, deck)
-deal_card(players_cards, deck)
-deal_card(dealers_cards, deck)
-
-prompt "Dealer has: #{dealers_cards[0]} and unknown card"
-prompt display_players_cards(players_cards)
-prompt "Your total: #{score(players_cards)}"
-prompt "Hit or Stay? type h for Hit or s for Stay"
-answer = gets.chomp
-
-
-deal_card(players_cards, deck) if answer == "h"
-prompt display_players_cards(players_cards)
-
-
+prompt "Thanks for playing!"
