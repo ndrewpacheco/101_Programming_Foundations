@@ -73,19 +73,24 @@ loop do
 
   players_cards = []
   dealers_cards = []
-
+  
   deal_card(players_cards, deck)
   deal_card(dealers_cards, deck)
   deal_card(players_cards, deck)
   deal_card(dealers_cards, deck)
 
   loop do
+    players_total = score(players_cards)
+    dealers_total = score(dealers_cards)
+    puts "=============="
     prompt "Dealer has: #{dealers_cards[0]} and unknown card"
     prompt display_cards(players_cards, name)
-    prompt "Your total: #{score(players_cards)}"
+    puts "=============="
+    prompt "Your total: #{players_total}"
     prompt "Hit or Stay? type h for Hit or s for Stay"
     answer = gets.chomp.downcase
 
+    puts "=============="
     if answer == "h"
       deal_card(players_cards, deck)
       prompt "You hit"
@@ -94,12 +99,15 @@ loop do
     else
       prompt "That was not a valid answer, try again."
     end
-    break if answer == "s" || busted?(score(players_cards))
+    break if answer == "s" || busted?(players_total)
   end
-
-  if busted?(score(players_cards))
+  players_total = score(players_cards)
+    dealers_total = score(dealers_cards)
+  if busted?(players_total)
+    puts "=============="
     prompt display_cards(players_cards, name)
     prompt "Sorry you busted! Dealer wins"
+    puts "=============="
   else
     while score(dealers_cards) < 17
       deal_card(dealers_cards, deck)
@@ -107,13 +115,13 @@ loop do
     prompt display_cards(dealers_cards)
     prompt "Dealer's score: #{score(dealers_cards)}"
     prompt "Your score: #{score(players_cards)}"
+    puts "=============="
 
     if score(dealers_cards) > 21
-      prompt display_cards(dealers_cards)
       prompt "Dealer busts. You win!"
-    elsif score(players_cards) > score(dealers_cards)
+    elsif players_total > score(dealers_cards)
       prompt "You Win!"
-    elsif score(players_cards) < score(dealers_cards)
+    elsif players_total < score(dealers_cards)
       prompt "Dealer Wins!"
     else
       prompt "It's a tie!"
@@ -129,4 +137,5 @@ loop do
   end
   break unless answer == 'y'
 end
+puts "=============="
 prompt "Thanks for playing!"
